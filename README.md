@@ -19,6 +19,27 @@ The first launch seeds a sample club menu (beers, spirits by the tot, full
 bottles, cocktails, shots, soft drinks, kitchen, cover charge) so you can serve
 straight away. Settings → **Reset to sample club menu** reloads it later.
 
+## Deploy to Render
+
+The repo ships a [`render.yaml`](render.yaml) Blueprint.
+
+1. Push this repo to GitHub (done).
+2. Render dashboard → **New → Blueprint** → pick the `noxloungepox` repo → **Apply**.
+3. Render creates **nox-pos** (static PWA) — it goes live at
+   `https://nox-pos.onrender.com` and needs no configuration; the POS is
+   fully usable from there, queuing sales locally.
+4. The Blueprint also defines **nox-pos-api** (the Oracle sync backend). It
+   only works against a database Render can reach — **a local Oracle XE on
+   your PC is not reachable from the cloud.** Use Oracle Cloud (Autonomous
+   DB) or a publicly reachable Oracle, then set `ORACLE_USER`,
+   `ORACLE_PASSWORD`, `ORACLE_CONNECT_STRING` on that service. Finally set
+   `VITE_SYNC_URL` on **nox-pos** to `https://nox-pos-api.onrender.com/pos/sales`
+   and redeploy. If you don't need cloud sync yet, delete the `nox-pos-api`
+   service — the POS is unaffected.
+
+Any static host works too (`npm run build` → deploy `dist/`): Netlify,
+Cloudflare Pages, GitHub Pages, Vercel.
+
 ## What it does
 
 | Area | Details |
