@@ -87,14 +87,12 @@ export default function LoginForm({ onSwitchToRegister }) {
         </button>
       </form>
 
-      {role === 'cashier' && (
-        <button
-          onClick={onSwitchToRegister}
-          className="mt-4 text-center text-sm font-medium text-teal-600"
-        >
-          New cashier? Create an account
-        </button>
-      )}
+      <button
+        onClick={() => onSwitchToRegister(role)}
+        className="mt-4 text-center text-sm font-medium text-teal-600"
+      >
+        {role === 'admin' ? 'Need an admin account? Create one' : 'New cashier? Create an account'}
+      </button>
     </div>
   )
 }

@@ -6,17 +6,20 @@ import RegisterForm from './RegisterForm'
 /**
  * Shown whenever nobody is signed in. On the very first run (no admin
  * account exists yet) it forces the admin setup form; after that it's a
- * normal login screen with a link to self-register a cashier account.
+ * normal login screen with links to self-register a cashier or admin
+ * account, whichever tab is selected.
  */
 export default function AuthGate() {
   const [checking, setChecking] = useState(true)
-  const [needsAdmin, setNeedsAdmin] = useState(false)
+  const [firstRun, setFirstRun] = useState(false)
   const [mode, setMode] = useState('login')
+  const [registerRole, setRegisterRole] = useState('cashier')
 
   useEffect(() => {
     hasAdminUser().then((has) => {
-      setNeedsAdmin(!has)
+      setFirstRun(!has)
       setMode(has ? 'login' : 'register')
+      setRegisterRole('admin')
       setChecking(false)
     })
   }, [])
@@ -26,8 +29,17 @@ export default function AuthGate() {
   }
 
   return mode === 'register' ? (
-    <RegisterForm forceAdmin={needsAdmin} onSwitchToLogin={() => setMode('login')} />
+    <RegisterForm
+      role={registerRole}
+      firstRun={firstRun}
+      onSwitchToLogin={() => setMode('login')}
+    />
   ) : (
-    <LoginForm onSwitchToRegister={() => setMode('register')} />
+    <LoginForm
+      onSwitchToRegister={(role) => {
+        setRegisterRole(role)
+        setMode('register')
+      }}
+    />
   )
 }

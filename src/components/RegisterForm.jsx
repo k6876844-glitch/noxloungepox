@@ -5,12 +5,14 @@ const field =
   'w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200'
 
 /**
- * forceAdmin is true only on very first run, when no admin account exists
- * yet — that run creates the admin. Every registration after that is a
- * cashier picking their own username and password.
+ * `role` is the account type being created ('cashier' | 'admin'), picked on
+ * the login screen's tab before switching here. `firstRun` is only true on
+ * the very first launch (no admin account exists yet) — that run has no
+ * "sign in" link, since there's nothing to sign into yet.
  */
-export default function RegisterForm({ forceAdmin, onSwitchToLogin }) {
+export default function RegisterForm({ role, firstRun, onSwitchToLogin }) {
   const { register } = useApp()
+  const isAdmin = role === 'admin'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -23,7 +25,7 @@ export default function RegisterForm({ forceAdmin, onSwitchToLogin }) {
     if (password !== confirm) return setError('Passwords do not match.')
     setBusy(true)
     try {
-      await register({ username, password, role: forceAdmin ? 'admin' : 'cashier' })
+      await register({ username, password, role })
     } catch (err) {
       setError(err.message || 'Could not create that account.')
     } finally {
@@ -34,13 +36,17 @@ export default function RegisterForm({ forceAdmin, onSwitchToLogin }) {
   return (
     <div className="mx-auto flex h-full max-w-xs flex-col justify-center p-6">
       <div className="mb-6 text-center">
-        <div className="mb-2 text-4xl">{forceAdmin ? '👑' : '🍸'}</div>
+        <div className="mb-2 text-4xl">{isAdmin ? '👑' : '🍸'}</div>
         <h1 className="text-lg font-semibold text-slate-800">
-          {forceAdmin ? 'Set up the admin account' : 'Create your cashier account'}
+          {firstRun
+            ? 'Set up the admin account'
+            : isAdmin
+              ? 'Create an admin account'
+              : 'Create your cashier account'}
         </h1>
         <p className="text-sm text-slate-400">
-          {forceAdmin
-            ? 'This account manages the menu, dashboard and settings.'
+          {isAdmin
+            ? 'Full access to the menu, dashboard and settings.'
             : 'Pick your own username and password.'}
         </p>
       </div>
@@ -78,7 +84,7 @@ export default function RegisterForm({ forceAdmin, onSwitchToLogin }) {
         </button>
       </form>
 
-      {!forceAdmin && (
+      {!firstRun && (
         <button
           onClick={onSwitchToLogin}
           className="mt-4 text-center text-sm font-medium text-teal-600"
