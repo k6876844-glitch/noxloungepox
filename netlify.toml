@@ -1,0 +1,32 @@
+# Netlify config for the Nox Lounge POS (static PWA).
+# Connect the repo at https://app.netlify.com → "Add new site → Import an
+# existing project" → pick k6876844-glitch/noxloungepox. Netlify reads this
+# file, so there is nothing else to configure.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Optional: set the sync backend URL here or in Site settings → Environment
+  # variables, then redeploy. Leave unset to run the POS without cloud sync.
+  # VITE_SYNC_URL = "https://your-api.example.com/pos/sales"
+
+# SPA fallback — only applied when no built file matches the request, so
+# /sw.js, /manifest.webmanifest and /assets/* are still served directly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Keep the service worker from being cached hard so updates land promptly.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"

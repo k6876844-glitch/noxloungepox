@@ -37,7 +37,23 @@ The repo ships a [`render.yaml`](render.yaml) Blueprint.
    and redeploy. If you don't need cloud sync yet, delete the `nox-pos-api`
    service — the POS is unaffected.
 
-Any static host works too (`npm run build` → deploy `dist/`): Netlify,
+## Deploy to Netlify
+
+The repo ships [`netlify.toml`](netlify.toml) — build, publish dir, SPA
+fallback and service-worker headers are all preconfigured.
+
+1. [app.netlify.com](https://app.netlify.com) → **Add new site → Import an
+   existing project** → **GitHub** → pick `noxloungepox`.
+2. Leave every field as detected (Netlify reads `netlify.toml`) → **Deploy**.
+3. Live in ~1 min at `https://<random-name>.netlify.app` — rename it in
+   **Site configuration → Change site name**.
+4. Cloud sync (optional): **Site configuration → Environment variables** →
+   add `VITE_SYNC_URL` = your API's `/pos/sales` URL → **Deploys →
+   Trigger deploy**.
+
+Unlike Render's free tier, Netlify doesn't sleep — better for the till.
+
+Other static hosts work the same way (`npm run build` → deploy `dist/`):
 Cloudflare Pages, GitHub Pages, Vercel.
 
 ## What it does
