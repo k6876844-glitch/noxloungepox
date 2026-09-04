@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f1f5f9;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Bigger, touch-friendly default hit areas on the sale screen. */
+button {
+  touch-action: manipulation;
+}
+
+/* --- Receipt printing ---------------------------------------------------- */
+/* Only #receipt-print-area is sent to the printer. On screen it is hidden;
+   the on-screen receipt preview lives inside the app and is a separate node. */
+#receipt-print-area {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+  body > #root {
+    display: none !important;
+  }
+  #receipt-print-area {
+    display: block;
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+  }
+  .receipt-paper {
+    width: 58mm;
+    padding: 2mm 3mm;
+    font-family: 'Courier New', ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #000;
+  }
+  @page {
+    margin: 4mm;
+    size: 58mm auto;
+  }
+}

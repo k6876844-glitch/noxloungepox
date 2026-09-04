@@ -1,0 +1,20 @@
+{
+  "name": "nox-pos-server",
+  "version": "1.0.0",
+  "description": "Oracle sync backend for Nox Lounge POS",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "init-db": "node init-db.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "oracledb": "^7.0.1"
+  }
+}
