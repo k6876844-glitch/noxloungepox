@@ -1,14 +1,12 @@
 # Render Blueprint — https://render.com/docs/blueprint-spec
 #
-# Deploys two services:
-#   1. nox-pos      — the POS itself, a static PWA (works fully offline)
-#   2. nox-pos-api  — the Oracle sync backend (optional; see note below)
+#   1. nox-pos      — the POS, a static PWA (works fully offline, no config)
+#   2. nox-pos-api  — the Oracle sync backend (optional)
 #
-# NOTE ON THE BACKEND: it needs a database it can actually reach. A local
-# Oracle XE on your PC is NOT reachable from Render. Point it at Oracle Cloud
-# (Autonomous DB) or an Oracle exposed on a public host, then fill the env
-# vars in the Render dashboard. Until then, deploy only the static site — the
-# POS runs without it and just keeps sales queued locally.
+# The backend needs a database it can actually reach. A local Oracle XE on
+# your PC is NOT reachable from Render — point it at Oracle Cloud (Autonomous
+# DB) or a publicly reachable Oracle and fill the env vars in the dashboard.
+# Don't need cloud sync yet? Deploy only nox-pos; the POS is unaffected.
 
 services:
   # ---------------------------------------------------------------- frontend
@@ -17,20 +15,15 @@ services:
     name: nox-pos
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    pullRequestPreviewsEnabled: false
     envVars:
-      # Set this to the API URL once the backend is live, e.g.
-      # https://nox-pos-api.onrender.com/pos/sales  — then trigger a redeploy.
+      # Point at the API once it's live, e.g.
+      # https://nox-pos-api.onrender.com/pos/sales  — then redeploy.
       - key: VITE_SYNC_URL
         sync: false
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    headers:
-      - path: /sw.js
-        name: Cache-Control
-        value: no-cache
 
   # ----------------------------------------------------------------- backend
   - type: web
@@ -41,7 +34,6 @@ services:
     buildCommand: npm install
     startCommand: node index.js
     healthCheckPath: /health
-    autoDeploy: true
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -52,5 +44,4 @@ services:
       - key: ORACLE_CONNECT_STRING
         sync: false
       - key: CORS_ORIGINS
-        # the deployed POS origin; update if you use a custom domain
         value: https://nox-pos.onrender.com
