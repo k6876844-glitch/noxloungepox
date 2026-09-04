@@ -14,6 +14,7 @@ import {
   DEFAULT_SETTINGS,
 } from '../db/settings'
 import { seedIfEmpty } from '../db/seed'
+import { registerUser, verifyLogin } from '../db/users'
 import { calculateTotals } from '../lib/cart'
 
 const AppContext = createContext(null)
@@ -32,12 +33,13 @@ export function AppProvider({ children }) {
   const [pendingCount, setPendingCount] = useState(0)
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
 
-  // ---- admin lock (Menu / Dashboard / Settings) ----
-  const [admin, setAdmin] = useState(() => {
+  // ---- signed-in user (Menu / Dashboard / Settings are admin-only) ----
+  const [currentUser, setCurrentUser] = useState(() => {
     try {
-      return sessionStorage.getItem('nox-admin') === '1'
+      const raw = sessionStorage.getItem('nox-user')
+      return raw ? JSON.parse(raw) : null
     } catch {
-      return false
+      return null
     }
   })
 
@@ -73,26 +75,33 @@ export function AppProvider({ children }) {
     })()
   }, [])
 
-  const unlockAdmin = useCallback(
-    (pin) => {
-      const ok = String(pin) === String(settings.adminPin || '1234')
-      if (ok) {
-        setAdmin(true)
-        try {
-          sessionStorage.setItem('nox-admin', '1')
-        } catch {
-          /* ignore */
-        }
-      }
-      return ok
-    },
-    [settings.adminPin],
-  )
-
-  const lockAdmin = useCallback(() => {
-    setAdmin(false)
+  function persistSession(user) {
+    const session = { id: user.id, username: user.username, role: user.role }
+    setCurrentUser(session)
     try {
-      sessionStorage.removeItem('nox-admin')
+      sessionStorage.setItem('nox-user', JSON.stringify(session))
+    } catch {
+      /* ignore */
+    }
+    return session
+  }
+
+  const login = useCallback(async (username, password) => {
+    const user = await verifyLogin(username, password)
+    if (!user) return false
+    persistSession(user)
+    return true
+  }, [])
+
+  const register = useCallback(async ({ username, password, role }) => {
+    const user = await registerUser({ username, password, role })
+    return persistSession(user)
+  }, [])
+
+  const logout = useCallback(() => {
+    setCurrentUser(null)
+    try {
+      sessionStorage.removeItem('nox-user')
     } catch {
       /* ignore */
     }
@@ -180,10 +189,11 @@ export function AppProvider({ children }) {
     pendingCount,
     settings,
     updateSettings,
-    // admin lock
-    admin,
-    unlockAdmin,
-    lockAdmin,
+    // auth
+    currentUser,
+    login,
+    register,
+    logout,
     // cart
     cart,
     addToCart,

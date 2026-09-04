@@ -1,13 +1,14 @@
 import { openDB } from 'idb'
 
 const DB_NAME = 'duka-pos'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 export const STORES = {
   PRODUCTS: 'products',
   SALES: 'sales',
   PENDING_SYNC: 'pendingSync',
   SETTINGS: 'settings',
+  USERS: 'users',
 }
 
 let dbPromise
@@ -31,6 +32,10 @@ export function getDB() {
         }
         if (!db.objectStoreNames.contains(STORES.SETTINGS)) {
           db.createObjectStore(STORES.SETTINGS, { keyPath: 'key' })
+        }
+        if (!db.objectStoreNames.contains(STORES.USERS)) {
+          const users = db.createObjectStore(STORES.USERS, { keyPath: 'id' })
+          users.createIndex('usernameLower', 'usernameLower', { unique: true })
         }
       },
     })

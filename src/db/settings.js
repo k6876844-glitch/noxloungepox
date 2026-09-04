@@ -8,9 +8,6 @@ export const DEFAULT_SETTINGS = {
   taxInclusive: true, // bar prices on the menu already include VAT
   currency: 'KES',
   receiptFooter: 'Drink responsibly. Karibu tena!',
-  // Manager PIN that unlocks the admin area (Menu, Dashboard, Settings).
-  // The bar/sale screen never needs it. Change it in Settings.
-  adminPin: '1234',
 }
 
 // Previous default club names — treated as "not set by the user" so the

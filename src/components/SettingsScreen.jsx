@@ -99,30 +99,6 @@ export default function SettingsScreen() {
           />
         </div>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-600">
-            Manager PIN
-          </label>
-          <input
-            className={field}
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            pattern="[0-9]*"
-            maxLength={8}
-            value={form.adminPin}
-            onChange={(e) => {
-              const pin = e.target.value.replace(/\D/g, '').slice(0, 8)
-              setForm((f) => ({ ...f, adminPin: pin }))
-              setSaved(false)
-            }}
-          />
-          <p className="mt-1 text-xs text-slate-400">
-            Unlocks Menu, Dashboard and Settings. The bar screen never asks for
-            it.
-          </p>
-        </div>
-
         <button className="w-full rounded-xl bg-teal-600 py-3 font-semibold text-white active:bg-teal-700">
           {saved ? 'Saved ✓' : 'Save settings'}
         </button>
