@@ -88,9 +88,8 @@ export function AppProvider({ children }) {
 
   const login = useCallback(async (username, password) => {
     const user = await verifyLogin(username, password)
-    if (!user) return false
-    persistSession(user)
-    return true
+    if (!user) return null
+    return persistSession(user)
   }, [])
 
   const register = useCallback(async ({ username, password, role }) => {
