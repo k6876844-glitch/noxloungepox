@@ -61,7 +61,7 @@ Cloudflare Pages, GitHub Pages, Vercel.
 | Area | Details |
 |---|---|
 | **Bar screen** | Search the menu or scan an item code, tap to add, adjust quantities, order-level discount (KES or %), live subtotal / VAT / total. |
-| **Checkout** | Cash (quick-cash buttons + change due), M-Pesa or Card (with reference / transaction code). Fast, few taps. |
+| **Checkout** | Cash (quick-cash buttons + change due), M-Pesa or Card (with reference / transaction code). Fast, few taps. **Split tender:** if a payment doesn't cover the bill, tap **+ Add another payment** to settle the rest on a different method — e.g. KES 3,000 cash then KES 600 M-Pesa, in any order. Change is worked out per cash leg. |
 | **Receipt** | 58 mm-style itemised receipt, printed via the browser print dialog. `receiptToEscPos()` in `src/lib/receipt.js` is a ready stub for a real thermal printer. |
 | **Dashboard** | Two views via a toggle at the top: **Overview** (day's numbers, sync) and **Menu** (add / edit / delete items — name, price, item code, stock qty, category; quick restock via the stock pill on each row). |
 | **Admin lock** | Dashboard and Settings sit behind a **manager PIN** (default `1234`, change it in Settings). The Bar and History screens never ask for it, so cashiers can only sell — not edit stock, prices, or settings. Unlock lasts until the browser is closed; "🔓 Lock admin" in the header ends it sooner. |

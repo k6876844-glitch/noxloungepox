@@ -48,3 +48,52 @@ export function calculateTotals(items, opts = {}) {
     itemCount: items.reduce((n, i) => n + (Number(i.quantity) || 0), 0),
   }
 }
+
+/**
+ * Reconcile one or more tender rows against the amount due. Lets a bill be
+ * settled across methods, e.g. KES 3,000 cash then KES 600 M-Pesa, in any order.
+ *
+ * @param rows   [{ method: 'cash'|'mpesa'|'card', amount, reference? }]
+ *               For cash, `amount` is the cash handed over (may exceed what is
+ *               owed → change). For M-Pesa / card it is the amount charged.
+ * @param total  the sale total
+ * @returns { lines, paid, outstanding, changeDue, settled, overpaidNonCash }
+ *          `lines[i].due` is the balance still owed *before* that row,
+ *          `lines[i].amount` is how much of it that row actually covers.
+ */
+export function reconcileTenders(rows, total) {
+  let outstanding = round2(total)
+  let changeDue = 0
+  let overpaidNonCash = false
+
+  const lines = (rows || []).map((r) => {
+    const due = round2(Math.max(0, outstanding))
+    const entered = round2(Math.max(0, Number(r.amount) || 0))
+    const applied = Math.min(entered, due)
+    let change = 0
+    if (r.method === 'cash') {
+      change = round2(entered - applied)
+    } else if (entered - due > 0.001) {
+      overpaidNonCash = true
+    }
+    outstanding = round2(outstanding - applied)
+    changeDue = round2(changeDue + change)
+    return {
+      method: r.method,
+      reference: (r.reference || '').trim(),
+      due,
+      entered,
+      amount: round2(applied),
+      change,
+    }
+  })
+
+  return {
+    lines,
+    paid: round2(total - Math.max(0, outstanding)),
+    outstanding: round2(Math.max(0, outstanding)),
+    changeDue,
+    settled: outstanding <= 0.001,
+    overpaidNonCash,
+  }
+}

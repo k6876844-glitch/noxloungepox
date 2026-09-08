@@ -68,7 +68,7 @@ app.post('/pos/sales', async (req, res) => {
           payment_method: p.method ?? null,
           payment_amount: num(p.amount),
           payment_change: num(p.change),
-          payment_ref: p.reference || null,
+          payment_ref: p.reference ? String(p.reference).slice(0, 64) : null,
           raw_json: JSON.stringify(sale),
         },
       )

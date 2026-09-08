@@ -107,6 +107,17 @@ Each sale is removed from the local queue only after the API returns 2xx.
 `raw_json`), `pos_sale_items` holds one row per line. Both are written in a
 single transaction.
 
+**Split payments:** a sale settled across methods stores `payment_method =
+'split'` with `payment_amount` = the total taken and `payment_ref` = the joined
+references. The per-method legs (`payment.splits[]`) live only in `raw_json`.
+`pos_daily_totals` gets a `split` column for these; `pos_tender_totals` unpacks
+them so cash / M-Pesa / card takings stay accurate. After pulling this change,
+re-apply the views (they are `CREATE OR REPLACE`, no data migration):
+
+```sql
+-- run just the two CREATE OR REPLACE VIEW statements from schema.sql
+```
+
 ```sql
 SELECT * FROM pos_daily_totals ORDER BY sale_day DESC;
 

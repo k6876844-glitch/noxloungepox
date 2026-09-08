@@ -4,9 +4,23 @@ import { formatKES, isSameDay } from '../lib/format'
 import { syncPendingSales } from '../lib/sync'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 
-function Stat({ label, value, hint }) {
+/** Cash actually taken in a sale — the cash leg of a split, else the whole
+ *  total for a cash sale, else nothing. Excludes change given back. */
+function cashPortion(sale) {
+  const p = sale.payment || {}
+  if (Array.isArray(p.splits) && p.splits.length) {
+    return p.splits
+      .filter((s) => s.method === 'cash')
+      .reduce((n, s) => n + (Number(s.amount) || 0), 0)
+  }
+  return p.method === 'cash' ? sale.totals.total : 0
+}
+
+function Stat({ label, value, hint, className = '' }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+    <div
+      className={`rounded-2xl border border-slate-200 bg-white p-4 ${className}`}
+    >
       <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -26,9 +40,7 @@ export default function Dashboard() {
     const now = Date.now()
     const todays = sales.filter((s) => isSameDay(s.createdAt, now))
     const total = todays.reduce((sum, s) => sum + s.totals.total, 0)
-    const cash = todays
-      .filter((s) => s.payment.method === 'cash')
-      .reduce((sum, s) => sum + s.totals.total, 0)
+    const cash = todays.reduce((sum, s) => sum + cashPortion(s), 0)
     return {
       total,
       count: todays.length,
@@ -53,6 +65,18 @@ export default function Dashboard() {
   }, [sales])
 
   const lowStock = products.filter((p) => p.stock <= 5)
+
+  // Retail value of everything currently on the shelves (stock × selling price).
+  const stockValue = useMemo(() => {
+    let value = 0
+    let units = 0
+    for (const p of products) {
+      const qty = Math.max(0, Number(p.stock) || 0)
+      units += qty
+      value += qty * (Number(p.price) || 0)
+    }
+    return { value, units, lines: products.length }
+  }, [products])
 
   async function handleSync() {
     setSyncing(true)
@@ -88,6 +112,12 @@ export default function Dashboard() {
         <Stat label="Transactions" value={today.count} hint={`Avg ${formatKES(today.avg)}`} />
         <Stat label="Cash" value={formatKES(today.cash)} />
         <Stat label="M-Pesa / Card" value={formatKES(today.nonCash)} />
+        <Stat
+          label="Stock value"
+          value={formatKES(stockValue.value)}
+          hint={`${stockValue.units} units · ${stockValue.lines} items · at selling price`}
+          className="col-span-2"
+        />
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4">

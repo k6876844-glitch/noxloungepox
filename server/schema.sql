@@ -46,6 +46,30 @@ SELECT CAST(created_at AS DATE)        AS sale_day,
        SUM(tax)                        AS vat,
        SUM(CASE WHEN payment_method = 'cash'  THEN total ELSE 0 END) AS cash,
        SUM(CASE WHEN payment_method = 'mpesa' THEN total ELSE 0 END) AS mpesa,
-       SUM(CASE WHEN payment_method = 'card'  THEN total ELSE 0 END) AS card
+       SUM(CASE WHEN payment_method = 'card'  THEN total ELSE 0 END) AS card,
+       -- Sales settled across more than one method. The per-method breakdown
+       -- for these lives in raw_json -> payment.splits[]; see the query below.
+       SUM(CASE WHEN payment_method = 'split' THEN total ELSE 0 END) AS split
 FROM   pos_sales
 GROUP  BY CAST(created_at AS DATE);
+
+-- Per-method takings, splitting multi-tender sales into their legs ---------
+CREATE OR REPLACE VIEW pos_tender_totals AS
+-- single-method sales
+SELECT CAST(created_at AS DATE) AS sale_day,
+       payment_method            AS method,
+       SUM(payment_amount)       AS amount
+FROM   pos_sales
+WHERE  payment_method <> 'split'
+GROUP  BY CAST(created_at AS DATE), payment_method
+UNION ALL
+-- the individual legs of split sales, read from raw_json
+SELECT CAST(s.created_at AS DATE) AS sale_day,
+       t.method,
+       SUM(t.amount)             AS amount
+FROM   pos_sales s,
+       JSON_TABLE(s.raw_json, '$.payment.splits[*]'
+         COLUMNS (method VARCHAR2(20) PATH '$.method',
+                  amount NUMBER       PATH '$.amount')) t
+WHERE  s.payment_method = 'split'
+GROUP  BY CAST(s.created_at AS DATE), t.method;

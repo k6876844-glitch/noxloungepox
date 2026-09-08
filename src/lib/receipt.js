@@ -62,12 +62,26 @@ export function receiptToText(sale, settings) {
   lines.push(padLine('TOTAL KES', formatAmount(sale.totals.total)))
   lines.push(divider())
 
-  lines.push(padLine(`Paid — ${sale.payment.methodLabel}`, formatAmount(sale.payment.amount)))
-  if (sale.payment.method === 'cash') {
-    lines.push(padLine('Change', formatAmount(sale.payment.change)))
-  }
-  if (sale.payment.reference) {
-    lines.push(padLine('Ref', sale.payment.reference))
+  const pay = sale.payment
+  if (Array.isArray(pay.splits) && pay.splits.length) {
+    for (const s of pay.splits) {
+      lines.push(padLine(`Paid — ${s.methodLabel}`, formatAmount(s.amount)))
+      if (s.method === 'cash' && s.change > 0) {
+        lines.push(padLine('  Cash given', formatAmount(s.tendered)))
+        lines.push(padLine('  Change', formatAmount(s.change)))
+      }
+      if (s.reference) lines.push(padLine('  Ref', s.reference))
+    }
+    lines.push(padLine('Total paid', formatAmount(pay.amount)))
+    if (pay.change > 0) lines.push(padLine('Change', formatAmount(pay.change)))
+  } else {
+    lines.push(padLine(`Paid — ${pay.methodLabel}`, formatAmount(pay.amount)))
+    if (pay.method === 'cash') {
+      lines.push(padLine('Change', formatAmount(pay.change)))
+    }
+    if (pay.reference) {
+      lines.push(padLine('Ref', pay.reference))
+    }
   }
   lines.push(divider())
   if (settings.receiptFooter) {

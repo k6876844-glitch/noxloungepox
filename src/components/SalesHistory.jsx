@@ -99,19 +99,36 @@ export default function SalesHistory() {
                       <span>−{formatKES(s.totals.discountAmount)}</span>
                     </div>
                   )}
-                  {s.payment.method === 'cash' && (
-                    <div className="flex justify-between text-slate-500">
-                      <span>Cash / change</span>
-                      <span>
-                        {formatKES(s.payment.amount)} / {formatKES(s.payment.change)}
-                      </span>
-                    </div>
-                  )}
-                  {s.payment.reference && (
-                    <div className="flex justify-between text-slate-500">
-                      <span>Ref</span>
-                      <span>{s.payment.reference}</span>
-                    </div>
+                  {Array.isArray(s.payment.splits) && s.payment.splits.length ? (
+                    s.payment.splits.map((sp, i) => (
+                      <div key={i} className="flex justify-between text-slate-500">
+                        <span>
+                          {sp.methodLabel}
+                          {sp.reference ? ` · ${sp.reference}` : ''}
+                          {sp.method === 'cash' && sp.change > 0
+                            ? ` · change ${formatKES(sp.change)}`
+                            : ''}
+                        </span>
+                        <span>{formatKES(sp.amount)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      {s.payment.method === 'cash' && (
+                        <div className="flex justify-between text-slate-500">
+                          <span>Cash / change</span>
+                          <span>
+                            {formatKES(s.payment.amount)} / {formatKES(s.payment.change)}
+                          </span>
+                        </div>
+                      )}
+                      {s.payment.reference && (
+                        <div className="flex justify-between text-slate-500">
+                          <span>Ref</span>
+                          <span>{s.payment.reference}</span>
+                        </div>
+                      )}
+                    </>
                   )}
                   <button
                     onClick={() => setReprint(s)}
